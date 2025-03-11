@@ -172,3 +172,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# csv files
+*.csv
+
+# binary files produced by pre-processing
+*.pickle
+*.pkl

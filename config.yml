@@ -1,3 +1,3 @@
 data_path:
-  bulk_data_path: "/path/to/bulk_data"
-  sc_data_path: "/path/to/sc_data"
+  bulk_data_path: "/home/weishanli/CU/DavidsonLab/BuddiHGSC/data/bulk"
+  sc_data_path: "/home/weishanli/CU/DavidsonLab/BuddiHGSC/data/sc"

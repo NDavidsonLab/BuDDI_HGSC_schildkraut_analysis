@@ -1,3 +1,6 @@
 data_path:
   bulk_data_path: "/path/to/bulk_data"
   sc_data_path: "/path/to/sc_data"
+
+software_path:
+  buddi_HGSC: "/path/to/buddi_HGSC"

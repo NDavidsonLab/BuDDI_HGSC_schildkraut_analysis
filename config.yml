@@ -1,6 +1,6 @@
 data_path:
-  bulk_data_path: "/home/weishanli/CU/DavidsonLab/BuddiHGSC/data/bulk"
-  sc_data_path: "/home/weishanli/CU/DavidsonLab/BuddiHGSC/data/sc"
+  bulk_data_path: "/path/to/bulk_data"
+  sc_data_path: "/path/to/sc_data"
 
 software_path:
-  buddi_HGSC: "/home/weishanli/CU/DavidsonLab/BuddiHGSC/buddi_HGSC"
+  buddi_HGSC: "/path/to/buddi_HGSC"

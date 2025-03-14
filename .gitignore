@@ -179,3 +179,6 @@ cython_debug/
 # binary files produced by pre-processing
 *.pickle
 *.pkl
+
+# h5ad files
+*.h5ad

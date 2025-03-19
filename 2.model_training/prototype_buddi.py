@@ -111,24 +111,29 @@ def build_buddi(
     z_samp_type = ReparameterizationLayer(name='z_samp_type')(z_params_samp_type)
     z_slack = ReparameterizationLayer(name='z_slack')(z_params_slack)
 
+    ## Wrapping the intermediate latent space representations into inputs
+    z_label_input = tf.keras.Input(shape=z_label.shape[1:], name="z_label_input")
+    z_stim_input = tf.keras.Input(shape=z_stim.shape[1:], name="z_stim_input")
+    z_samp_type_input = tf.keras.Input(shape=z_samp_type.shape[1:], name="z_samp_type_input")
+
     # --------------------- Classifier ---------------------
     ## This classifier network predicts sample labels from the latent space
     classifier_branch_label = build_latent_space_classifier(
-        inputs = z_label,
+        inputs = z_label_input,
         num_classes = n_labels,
         representation_name = 'label'
     )
 
     ## This classifier network predicts stimulation conditions from the latent space
     classifier_branch_stim = build_latent_space_classifier(
-        inputs = z_stim,
+        inputs = z_stim_input,
         num_classes = n_stims,
         representation_name = 'stim'
     )
 
     ## This classifier network predicts sample types from the latent space
     classifier_branch_samp_type = build_latent_space_classifier(
-        inputs = z_samp_type,
+        inputs = z_samp_type_input,
         num_classes = n_samp_types,
         representation_name = 'samp_type'
     )
@@ -151,11 +156,15 @@ def build_buddi(
     # --------------------- Decoders ---------------------
 
     ## Supervised Decoder Input
-    supervised_decoder_input = Concatenate(name='supervised_decoder_input')(
+    supervised_decoder_concat = Concatenate(name='supervised_ls_concat')(
         [Y, z_label, z_stim, z_samp_type, z_slack])
+    supervised_decoder_input = tf.keras.Input(shape=supervised_decoder_concat.shape[1:], 
+                                              name="supervised_decoder_input")
     
-    unsupervised_decoder_input = Concatenate(name='unsupervised_decoder_input')(
+    unsupervised_decoder_concat = Concatenate(name='unsupervised_ls_concat')(
         [Y_hat, z_slack, z_stim, z_samp_type, z_slack])
+    unsupervised_decoder_input = tf.keras.Input(shape=unsupervised_decoder_concat.shape[1:], 
+                                                name="unsupervised_decoder_input")
     
     supervised_decoder, unsupervised_decoder = build_semi_supervised_decoder(
         inputs_supervised = supervised_decoder_input,
@@ -167,8 +176,8 @@ def build_buddi(
         output_name = 'X'
     )
 
-    X_hat_supervised = supervised_decoder(supervised_decoder_input)
-    X_hat_unsupervised = unsupervised_decoder(unsupervised_decoder_input)
+    X_hat_supervised = supervised_decoder(supervised_decoder_concat)
+    X_hat_unsupervised = unsupervised_decoder(unsupervised_decoder_concat)
 
     # --------------------- Losses ---------------------
     ## Note these are all functions with standard tensorflow signature accepting y_true and y_pred

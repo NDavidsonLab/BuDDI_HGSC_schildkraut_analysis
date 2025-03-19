@@ -8,7 +8,7 @@ from prototype_buddi_components import *
 from prototype_buddi_layers import *
 from prototype_buddi_losses import *
 
-Activation = Union[str, Callable[[tf.Tensor], tf.Tensor]]
+ActivationFn = Union[str, Callable[[tf.Tensor], tf.Tensor]]
 
 def build_buddi(
         n_x: int,
@@ -27,7 +27,7 @@ def build_buddi(
         beta_kl_label: float = 100.0,
         beta_kl_stim: float = 100.0,
         beta_kl_samp_type: float = 100.0,
-        activation: Activation = 'relu',
+        activation: ActivationFn = 'relu',
         optimizer = Adam(learning_rate=0.0005), 
     ) -> Tuple[Model, Model]:
     """

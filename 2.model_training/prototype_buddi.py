@@ -19,6 +19,10 @@ def build_buddi(
         z_dim: int = 64,
         encoder_hidden_dim: int = 512,
         decoder_hidden_dim: int = 512,
+        alpha_label: float = 100.0,
+        alpha_stim: float = 100.0,
+        alpha_samp_type: float = 100.0,
+        alpha_prop: float = 100.0,
         beta_kl_slack: float = 0.1,
         beta_kl_label: float = 100.0,
         beta_kl_stim: float = 100.0,
@@ -37,6 +41,10 @@ def build_buddi(
     :param z_dim: Dimension of the latent space
     :param encoder_hidden_dim: Dimension of the hidden layers in the encoder
     :param decoder_hidden_dim: Dimension of the hidden layers in the decoder
+    :param alpha_label: Weight of the classifier loss for the label branch
+    :param alpha_stim: Weight of the classifier loss for the stimulation branch
+    :param alpha_samp_type: Weight of the classifier loss for the sample type branch
+    :param alpha_prop: Weight of the classifier loss for the proportion estimator branch
     :param beta_kl_slack: Weight of the KL divergence loss for the slack branch
     :param beta_kl_label: Weight of the KL divergence loss for the label branch
     :param beta_kl_stim: Weight of the KL divergence loss for the stimulation branch
@@ -173,17 +181,17 @@ def build_buddi(
 
     classifier_loss_fn_label = classifier_loss_generator(
         loss_fn=mean_absolute_error,
-        weight=1.0, agg_fn=K.sum, axis=-1)
+        weight=alpha_label, agg_fn=K.sum, axis=-1)
     classifier_loss_fn_stim = classifier_loss_generator(
         loss_fn=mean_absolute_error,
-        weight=1.0, agg_fn=K.sum, axis=-1)
+        weight=alpha_stim, agg_fn=K.sum, axis=-1)
     classifier_loss_fn_samp_type = classifier_loss_generator(
         loss_fn=mean_absolute_error,
-        weight=1.0, agg_fn=K.sum, axis=-1)
+        weight=alpha_samp_type, agg_fn=K.sum, axis=-1)
     # this is the loss function for the proportion estimator
     prop_estimator_loss_fn = classifier_loss_generator(
         loss_fn=mean_absolute_error,
-        weight=1.0, agg_fn=K.sum, axis=-1)
+        weight=alpha_prop, agg_fn=K.sum, axis=-1)
 
     # --------------------- Compile ---------------------
 

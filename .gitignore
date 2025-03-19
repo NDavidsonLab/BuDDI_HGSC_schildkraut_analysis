@@ -185,3 +185,6 @@ cython_debug/
 
 # cibersortx input files
 processed_data/cibersortx_input/*
+
+# training output
+**/buddi_results/*

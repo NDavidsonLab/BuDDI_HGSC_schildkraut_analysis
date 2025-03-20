@@ -27,3 +27,7 @@ class AlternatingTrainingCallback(tf.keras.callbacks.Callback):
         df = pd.DataFrame(self.unsupervised_logs)
         df.to_csv("unsupervised_training_log.csv", index=False)
         print("Unsupervised training log saved!")
+
+    @property
+    def logs(self):
+        return self.unsupervised_logs

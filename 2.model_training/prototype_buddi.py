@@ -189,7 +189,7 @@ def build_buddi(
     reconstr_loss_fn = reconstr_loss_generator(weight=1.0, agg_fn=K.sum, axis=-1)
 
     classifier_loss_fn_label = classifier_loss_generator(
-        loss_fn=mean_absolute_error,
+        loss_fn=categorical_crossentropy,
         weight=alpha_label, agg_fn=K.sum, axis=-1)
     classifier_loss_fn_stim = classifier_loss_generator(
         loss_fn=mean_absolute_error,
@@ -199,7 +199,7 @@ def build_buddi(
         weight=alpha_samp_type, agg_fn=K.sum, axis=-1)
     # this is the loss function for the proportion estimator
     prop_estimator_loss_fn = classifier_loss_generator(
-        loss_fn=mean_absolute_error,
+        loss_fn=categorical_crossentropy,
         weight=alpha_prop, agg_fn=K.sum, axis=-1)
 
     # --------------------- Compile ---------------------

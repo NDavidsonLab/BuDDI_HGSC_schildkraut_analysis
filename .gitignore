@@ -1,3 +1,20 @@
+*.sh
+
+# keras model weights and model configurations
+*.json
+*.keras
+*.h5
+*.weights.h5
+
+# png files
+*.png
+
+# old notebook files
+**/oldnb/*
+
+# prototype source files
+**/prototype*/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

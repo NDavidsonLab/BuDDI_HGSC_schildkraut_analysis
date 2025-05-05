@@ -1,11 +1,11 @@
 class BuDDI4Data:
     def __init__(self, 
                  X_unkp, y_unkp, 
-                 label_unkp, drug_unkp, 
-                 bulk_unkp, meta_unkp,
+                 label_unkp, stim_unkp, 
+                 samp_type_unkp, meta_unkp,
                  X_kp, y_kp, 
-                 label_kp, drug_kp, 
-                 bulk_kp, meta_kp,
+                 label_kp, stim_kp, 
+                 samp_type_kp, meta_kp,
                  gene_names, cell_type_names, encode_meta):
         
         """
@@ -14,14 +14,14 @@ class BuDDI4Data:
         :param X_unkp: Feature matrix for unknown proportions
         :param y_unkp: Target matrix for unknown proportions
         :param label_unkp: Labels for unknown proportions
-        :param drug_unkp: Drug labels for unknown proportions
-        :param bulk_unkp: Bulk labels for unknown proportions
+        :param stim_unkp: Drug labels for unknown proportions
+        :param samp_type_unkp: Bulk labels for unknown proportions
         :param meta_unkp: Metadata for unknown proportions
         :param X_kp: Feature matrix for known proportions
         :param y_kp: Target matrix for known proportions
         :param label_kp: Labels for known proportions
-        :param drug_kp: Drug labels for known proportions
-        :param bulk_kp: Bulk labels for known proportions
+        :param stim_kp: Drug labels for known proportions
+        :param samp_type_kp: Bulk labels for known proportions
         :param meta_kp: Metadata for known proportions
         :param gene_names: List of gene names
         :param cell_type_names: List of cell type names
@@ -29,8 +29,8 @@ class BuDDI4Data:
         """
         
         self.data = {
-            "unkp": {"X": X_unkp, "y": y_unkp, "label": label_unkp, "drug": drug_unkp, "bulk": bulk_unkp, "meta": meta_unkp},
-            "kp":   {"X": X_kp,   "y": y_kp,   "label": label_kp,   "drug": drug_kp,   "bulk": bulk_kp,   "meta": meta_kp}
+            "unkp": {"X": X_unkp, "Y": y_unkp, "label": label_unkp, "stim": stim_unkp, "samp_type": samp_type_unkp, "meta": meta_unkp},
+            "kp":   {"X": X_kp,   "Y": y_kp,   "label": label_kp,   "stim": stim_kp,   "samp_type": samp_type_kp,   "meta": meta_kp}
         }
         self._gene_names = gene_names
         self._cell_type_names = cell_type_names

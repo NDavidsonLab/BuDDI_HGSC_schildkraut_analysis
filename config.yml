@@ -4,3 +4,4 @@ data_path:
 
 software_path:
   buddi_HGSC: "/home/weishanli/CU/DavidsonLab/BuddiHGSC/buddi_HGSC"
+  buddi_v2: "/home/weishanli/CU/DavidsonLab/buddi_v2/src"

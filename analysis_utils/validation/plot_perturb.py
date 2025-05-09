@@ -18,6 +18,7 @@ def plot_perturb_reduction(
     color_by: Optional[List[str]] = None,
     reduction_method: str = 'PCA',
     reduction_kwargs: Optional[dict] = None,
+    reduction_random_state: Optional[int] = None,
     panel_width: int = 5,
     alpha: float = 0.7,
     palette='tab20',
@@ -40,6 +41,7 @@ def plot_perturb_reduction(
     :param color_by: List of columns to color by (list of str).
     :param reduction_method: Dimensionality reduction method ('PCA' or 'UMAP').
     :param reduction_kwargs: Additional arguments for the reduction method (dict).
+    :param reduction_random_state: Random state for reproducibility (int).
     :param panel_width: Width of each panel (int).
     :param alpha: Alpha value for scatter plot (float).
     :param palette: Color palette for the plot (str).
@@ -101,6 +103,11 @@ def plot_perturb_reduction(
         pca_reducer = PCA(n_components=30)
         pca_basis = pca_reducer.fit_transform(x_basis)
         pca_perturb = pca_reducer.transform(xp)
+
+        if reduction_random_state is not None:
+            reduction_kwargs = reduction_kwargs or {}
+            reduction_kwargs['random_state'] = reduction_random_state
+
         reducer = UMAP(n_components=2, **(reduction_kwargs or {}))
         coords_basis = reducer.fit_transform(pca_basis)
         coords_perturb = reducer.transform(pca_perturb)
@@ -171,6 +178,20 @@ def plot_perturb_reduction(
         fig.subplots_adjust(top=0.9)
 
     plt.tight_layout()
+
+    # TODO: fix bottom caption wrapping and spacing
+    # fig.subplots_adjust(bottom=0.15)
+    # fig.text(
+    #     0.5, 0.05,
+    #     "Caption: This visualizes the dimensionality reduction of reconstructed gene expression"
+    #     " after perturbation (right column) against that of reference basis data (left column)."
+    #     " If most data points in the top right panel resemble the distribution and color pattern"
+    #     " of the left panel (with the exception of top left pnael points marked as 'x'),"
+    #     " the model training is likely successful and the perturbed latent space is sufficiently dis-entangled."
+    #     ,
+    #     ha="center", va="center",
+    #     fontsize="small"
+    # )
 
     if save_path is not None:
         plt.savefig(save_path, bbox_inches='tight')

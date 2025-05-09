@@ -6,6 +6,7 @@ import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import seaborn as sns
+import tensorflow as tf
 
 from ..buddi4data import BuDDI4Data
 
@@ -38,6 +39,8 @@ def perturb_sample(
     """
 
     rng = np.random.default_rng(seed)
+    if seed is not None:
+        tf.keras.utils.set_random_seed(seed)
 
     # 1) Gather & subset data if idx is provided
     X = data.get('kp', 'X')
@@ -88,11 +91,12 @@ def perturb_sample(
             
             zs_perturb = []
             for branch in branch_names:
+                tf.random.set_seed(seed) # re-seed for every inference
                 if branch != sample_branch_name:
                     _x = X_sub[pick_src, :]
                 else:
                     _x = X_sub[pick_tgt, :]
-                zp = obj.encoders[branch](_x)                
+                zp = obj.encoders[branch](_x)          
                 zs_perturb.append(obj.reparam_layers[branch](zp).numpy())
 
             y_src = y_sub[pick_src, :]

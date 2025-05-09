@@ -33,6 +33,8 @@ def perturb_cell_type(
         - ct_perturb_meta: Metadata for the perturbation.
     """
     rng = np.random.default_rng(seed)
+    if seed is not None:
+        tf.keras.utils.set_random_seed(seed)
 
     # 1) Gather & subset
     X = data.get('kp', 'X')
@@ -77,6 +79,7 @@ def perturb_cell_type(
 
             zs_src = []
             for branch in branch_names:
+                tf.random.set_seed(seed) # re-seed for every inference
                 zp = obj.encoders[branch](X_sub[pick_src, :])
                 zs_src.append(obj.reparam_layers[branch](zp).numpy())
 

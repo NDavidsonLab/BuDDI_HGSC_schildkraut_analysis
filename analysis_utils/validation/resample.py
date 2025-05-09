@@ -85,6 +85,7 @@ def reconstruct(
     # 3) Repeat reparameterization + decode
     for _ in range(n_resamples):
         # sample zs
+        tf.random.set_seed(seed) # re-seed for every inference
         zs = [
             obj.reparam_layers[branch](z_params[branch]).numpy()
             for branch in branch_names

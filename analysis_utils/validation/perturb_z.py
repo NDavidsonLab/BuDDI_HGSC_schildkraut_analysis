@@ -22,9 +22,31 @@ def _perturb_z(
     ignore_class: Iterable[str] = [],
     seed: Optional[int] = 42,
 ):
+    """
+    Perturb the latent space of a model by sampling from the encoder and decoder.
+
+    :param obj: BuDDI4 model object.
+    :param X: Input normalized expression matrix of shape (n_samples, n_genes).
+    :param y: Input cell type proportions matrix of shape (n_samples, n_cell_types).
+        rows should sum up to 1.
+    :param meta: Metadata associated with the data of shape (n_samples, n_meta_features).
+        Must contain column for cell types.
+    :param z_col_name: Column name in metadata for the latent space to be perturbed.
+    :param z_branch_name: Branch name in the encoder for the latent space to be perturbed.
+    :param idx: Indices of input data to use for perturbation. If None, all samples are used.
+    :param n_subsamples: Number of subsamples to draw from each source cell type.
+    :param n_resamples: Number of resamples to draw from each source cell type.
+    :param integrate_over_y: Whether to integrate over y.
+    :param integrate_over: List of latent spaces to integrate over.
+        If None, no integration is performed. Should not include the branch to be perturbed.
+    :param ignore_class: List of cell types to ignore during perturbation.
+    :param seed: Random seed for reproducibility.
+    :return: Tuple of reconstructed data and metadata.
+        - x_reconst_sample_perturb: Reconstructed data after perturbation.
+        - sample_perturb_meta: Metadata for the perturbation.
+    """
     
     rng = np.random.default_rng(seed)
-
 
     if idx is None:
         idx = np.arange(X.shape[0])

@@ -21,6 +21,25 @@ def _perturb_y(
     ignore_cell_types: Iterable[str] = [],
     seed: Optional[int] = 42,
 ):
+    """
+    Perturb the latent space of a model by sampling from the encoder and decoder.
+
+    :param obj: BuDDI4 model object.
+    :param X: Input normalized expression matrix of shape (n_samples, n_genes).
+    :param y: Input cell type proportions matrix of shape (n_samples, n_cell_types).
+        rows should sum up to 1.
+    :param meta: Metadata associated with the data of shape (n_samples, n_meta_features). 
+        Must contain column for cell types.  
+    :param cell_type_names: List of cell type names.
+    :param cell_type_col: Column name in metadata for cell types.
+    :param idx: Indices of input data to use for perturbation. If None, all samples are used.
+    :param n_subsamples: Number of subsamples to draw from each source cell type.
+    :param n_resamples: Number of resamples to draw from each source cell type.
+    :param integrate_over: List of latent spaces to integrate over.
+        If None, no integration is performed.
+    :param ignore_cell_types: List of cell types to ignore during perturbation.
+    :param seed: Random seed for reproducibility.
+    """
     
     rng = np.random.default_rng(seed)
 

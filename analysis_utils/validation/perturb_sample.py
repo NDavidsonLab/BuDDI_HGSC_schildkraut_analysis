@@ -1,4 +1,5 @@
 from typing import Iterable, Optional, Tuple, List, Any
+import warnings
 
 from tqdm import tqdm
 import numpy as np
@@ -8,12 +9,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import tensorflow as tf
 
-from ..buddi4data import BuDDI4Data
 from .perturb_z import _perturb_z
 
 def perturb_bulk_sample(
     obj: Any,
-    data: BuDDI4Data,
+    data: Any,
     sample_col: str = 'sample_id',
     sample_branch_name: str = 'label',
     idx: Optional[Iterable[int]] = None,
@@ -87,16 +87,16 @@ def perturb_bulk_sample(
 
 def perturb_single_cell_sample(
     obj: Any,
-    data: BuDDI4Data,
+    data: Any,
     sample_col: str = 'sample_id',
     sample_branch_name: str = 'label',
-    idx: Optional[Iterable[int]] = None,
-    n_subsamples: int = 500,
+    n_subsamples: Optional[int] = 500,
     n_resamples: int = 100,
     ignore_samples: Iterable[str] = [],
     integrate_over_cell_types: bool = False,
     integrate_over: Optional[List[str]] = None,
     seed: Optional[int] = 42,
+    query_kwargs: Optional[dict] = None,
 ):
     """
     Perform buddi4 model validation by perturbing the sample latent space of the model.
@@ -122,12 +122,27 @@ def perturb_single_cell_sample(
         - sample_perturb_meta: Metadata for the perturbation.
     """
     
+    query_kwargs = query_kwargs or {}
+    if 'samp_type' in query_kwargs:
+        if query_kwargs['samp_type'] != 'sc_ref':
+            warnings.warn("Overriding query_kwargs['samp_type'] to 'sc_ref'")
+            query_kwargs['samp_type'] = 'sc_ref'
+    else:
+        query_kwargs['samp_type'] = 'sc_ref'
+
     try:
-        X=data.get(condition='kp', key='X')
-        y=data.get(condition='kp', key='Y')
-        meta=data.get(condition='kp', key='meta')
-    except KeyError:
-        raise ValueError("Data object must contain 'X', 'Y', and 'meta' keys.")
+        data_query = data.query(
+            **query_kwargs
+        )
+    except Exception as e:
+        raise ValueError(f"Error querying data: {e}")
+    
+    try:
+        (X, y, meta) = data_query.get(
+            ('X', 'Y', 'meta')
+        )
+    except Exception as e:
+        raise ValueError(f"Error retrieving data from the BuDDI4Data object: {e}")
     
     if sample_col not in meta.columns:
         raise ValueError(f"Column '{sample_col}' not found in meta data.")
@@ -149,7 +164,6 @@ def perturb_single_cell_sample(
         meta=meta,
         z_col_name=sample_col,
         z_branch_name=sample_branch_name,
-        idx=idx,
         n_subsamples=n_subsamples,
         n_resamples=n_resamples,
         integrate_over_y=integrate_over_cell_types,

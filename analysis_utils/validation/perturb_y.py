@@ -1,4 +1,5 @@
 from typing import Iterable, Any, Optional, List
+import warnings
 
 from tqdm import tqdm
 import numpy as np
@@ -15,7 +16,7 @@ def _perturb_y(
     cell_type_names: List[str],
     cell_type_col: str,
     idx: Optional[Iterable[int]] = None,
-    n_subsamples: int = 500,
+    n_subsamples: Optional[int] = None,
     n_resamples: int = 1,
     integrate_over: Optional[List[str]] = None,
     ignore_cell_types: Iterable[str] = [],
@@ -87,8 +88,24 @@ def _perturb_y(
 
             src_rows = ct_to_idx[src]
             tgt_rows = ct_to_idx[tgt]
-            pick_src = rng.choice(src_rows, size=n_subsamples, replace=True)
-            pick_tgt = rng.choice(tgt_rows, size=n_subsamples, replace=True)
+            if n_subsamples is None:
+                if len(src_rows) != len(tgt_rows):
+                    n = min(len(src_rows), len(tgt_rows))
+                    warnings.warn(
+                        f"Source ({src}) and target ({tgt}) cell types have different number of samples. "
+                        f"Subsampling to the minimum number of samples: ({n})."
+                    )
+                    if len(src_rows) != n:
+                        pick_src = rng.choice(src_rows, size=n, replace=False)
+                    if len(tgt_rows) != n:
+                        pick_tgt = rng.choice(tgt_rows, size=n, replace=False)
+                else:                    
+                    pick_src = src_rows
+                    pick_tgt = tgt_rows     
+
+            else:
+                pick_src = rng.choice(src_rows, size=n_subsamples, replace=True)
+                pick_tgt = rng.choice(tgt_rows, size=n_subsamples, replace=True)
 
             zs_src = []
             for branch in branch_names:
@@ -117,12 +134,13 @@ def _perturb_y(
                 recon = obj.decoder([y_tgt] + zs_src).numpy()
 
             recons.append(recon)
+            n = recon.shape[0]
             perturb_meta = pd.DataFrame(
                 data={
                     'reconstruction_type': 'perturbed',
                     'perturb_type': cell_type_col,
-                    'source': [src]*n_subsamples*n_resamples,
-                    'target': [tgt]*n_subsamples*n_resamples
+                    'source': [src]*n,
+                    'target': [tgt]*n
                 }
             )
             perturb_meta = pd.concat(

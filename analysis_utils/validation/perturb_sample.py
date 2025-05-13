@@ -17,12 +17,13 @@ def perturb_bulk_sample(
     sample_col: str = 'sample_id',
     sample_branch_name: str = 'label',
     idx: Optional[Iterable[int]] = None,
-    n_subsamples: Optional[int] = None,
+    n_subsamples: Optional[int] = 5,
     n_resamples: int = 100,
     ignore_samples: Iterable[str] = [],
     integrate_over_cell_types: bool = True,
     integrate_over: Optional[List[str]] = None,
     seed: Optional[int] = 42,
+    query_kwargs: Optional[dict] = None,
 ):
     """
     Perform buddi4 model validation by perturbing the sample latent space of the model.
@@ -48,13 +49,37 @@ def perturb_bulk_sample(
         - x_reconst_sample_perturb: Reconstructed data after perturbation.
         - sample_perturb_meta: Metadata for the perturbation.
     """
+    query_kwargs = query_kwargs or {}
+    if 'samp_type' in query_kwargs:
+        if query_kwargs['samp_type'] != 'bulk':
+            warnings.warn("Overriding query_kwargs['samp_type'] to 'bulk'")
+            query_kwargs['samp_type'] = 'bulk'
+    else:
+        query_kwargs['samp_type'] = 'bulk'
+
+    try:
+        data_query = data.query(
+            **query_kwargs
+        )
+    except Exception as e:
+        raise ValueError(f"Error querying data: {e}")
     
     try:
-        X=data.get(condition='unkp', key='X')
-        y=data.get(condition='unkp', key='Y')
-        meta=data.get(condition='unkp', key='meta')
-    except KeyError:
-        raise ValueError("Data object must contain 'X', 'Y', and 'meta' keys.")
+        (X, y, meta) = data_query.get(
+            ('X', 'Y', 'meta'),
+            n_samples=n_subsamples, # down sampling happens here for bulk
+            replace=False,
+            random_state=seed,
+        )
+    except Exception as e:
+        raise ValueError(f"Error retrieving data from the BuDDI4Data object: {e}")
+    
+    # try:
+    #     X=data.get(condition='unkp', key='X')
+    #     y=data.get(condition='unkp', key='Y')
+    #     meta=data.get(condition='unkp', key='meta')
+    # except KeyError:
+    #     raise ValueError("Data object must contain 'X', 'Y', and 'meta' keys.")
     
     if sample_col not in meta.columns:
         raise ValueError(f"Column '{sample_col}' not found in meta data.")
@@ -76,8 +101,9 @@ def perturb_bulk_sample(
         meta=meta,
         z_col_name=sample_col,
         z_branch_name=sample_branch_name,
-        idx=idx,
-        n_subsamples=n_subsamples,
+        # for perturbation of bulk ensure one sample per entry
+        # but this may not be needed (can be None) if the data ensures unqiue smaple id
+        n_subsamples=1, 
         n_resamples=n_resamples,
         integrate_over_y=integrate_over_cell_types,
         integrate_over=integrate_over,

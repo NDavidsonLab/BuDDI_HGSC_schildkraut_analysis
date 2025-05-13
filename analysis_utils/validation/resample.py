@@ -54,7 +54,7 @@ def reconstruct(
     try:
         (X, y, meta) = data_query.get(
             ('X', 'Y', 'meta'),
-            n_samples=n_subsamples,
+            n_samples=n_samples,
             replace=replace,
             random_state=seed,
         )

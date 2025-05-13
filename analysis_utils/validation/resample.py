@@ -33,12 +33,6 @@ def reconstruct(
 
     # 1) Pull & subset X, Y, meta
     query_kwargs = query_kwargs or {}
-    if 'samp_type' in query_kwargs:
-        if query_kwargs['samp_type'] != 'sc_ref':
-            warnings.warn("Overriding query_kwargs['samp_type'] to 'sc_ref'")
-            query_kwargs['samp_type'] = 'sc_ref'
-    else:
-        query_kwargs['samp_type'] = 'sc_ref'
 
     try:
         data_query = data.query(

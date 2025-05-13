@@ -8,8 +8,8 @@ def perturb_single_cell_type(
     data: Any,
     n_subsamples: Optional[int] = 500,
     n_resamples: int = 1,
-    integrate_over: Optional[List[str]] = None,
     ignore_cell_types: Iterable[str] = [],
+    integrate_over: Optional[List[str]] = None,
     seed: Optional[int] = 42,
     query_kwargs: Optional[dict] = None,
 ):

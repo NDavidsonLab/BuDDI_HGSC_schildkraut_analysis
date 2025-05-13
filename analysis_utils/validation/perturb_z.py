@@ -1,4 +1,5 @@
 from typing import Iterable, Any, Optional, List
+import warnings
 
 from tqdm import tqdm
 import numpy as np
@@ -15,7 +16,7 @@ def _perturb_z(
     z_col_name: str,
     z_branch_name: str,
     idx: Optional[Iterable[int]] = None,
-    n_subsamples: Optional[int] = 500,
+    n_subsamples: Optional[int] = None,
     n_resamples: Optional[int] = 1,
     integrate_over_y: bool = True,
     integrate_over: Optional[List[str]] = None,
@@ -46,7 +47,10 @@ def _perturb_z(
         - sample_perturb_meta: Metadata for the perturbation.
     """
     
-    rng = np.random.default_rng(seed)
+    if seed is None:
+        rng = np.random.default_rng()
+    else:
+        rng = np.random.RandomState(seed)
 
     if idx is None:
         idx = np.arange(X.shape[0])
@@ -105,17 +109,22 @@ def _perturb_z(
             tgt_rows = class_to_idx[tgt]
             # Randomly select subsamples from the source and target rows
             if n_subsamples is None:
-                pick_src = src_rows
-                pick_tgt = tgt_rows
+                if len(src_rows) != len(tgt_rows):
+                    n = min(len(src_rows), len(tgt_rows))
+                    warnings.warn(
+                        f"Source ({src}) and target ({tgt}) cell types have different number of samples. "
+                        f"Subsampling to the minimum number of samples: ({n})."
+                    )
+                    if len(src_rows) != n:
+                        pick_src = rng.choice(src_rows, size=n, replace=False)
+                    if len(tgt_rows) != n:
+                        pick_tgt = rng.choice(tgt_rows, size=n, replace=False)
+                else:                    
+                    pick_src = src_rows
+                    pick_tgt = tgt_rows
             else:
-                pick_src = rng.choice(
-                    src_rows, 
-                    size=n_subsamples, 
-                    replace=True)
-                pick_tgt = rng.choice(
-                    tgt_rows, 
-                    size=n_subsamples, 
-                    replace=True)
+                pick_src = rng.choice(src_rows, size=n_subsamples, replace=True)
+                pick_tgt = rng.choice(tgt_rows, size=n_subsamples, replace=True)
             
             zs_perturb = []
             for branch in branch_names:
@@ -146,9 +155,8 @@ def _perturb_z(
             with tf.device('/CPU:0'):
                 recon = obj.decoder([y_src] + zs_perturb).numpy()
 
-            _n = recon.shape[0]
-
             recons.append(recon)
+            _n = recon.shape[0]
             perturb_meta = pd.DataFrame(
                 data={
                     'reconstruction_type': 'perturbed',
@@ -171,8 +179,8 @@ def _perturb_z(
             metas.append(perturb_meta)
 
     # 5) Collate and return
-    x_reconst_sample_perturb = np.vstack(recons)
-    sample_perturb_meta = pd.concat(metas, ignore_index=True)
-    sample_perturb_meta.reset_index(drop=True, inplace=True)
+    x_reconst_perturb = np.vstack(recons)
+    perturb_meta = pd.concat(metas, ignore_index=True)
+    perturb_meta.reset_index(drop=True, inplace=True)
 
-    return x_reconst_sample_perturb, sample_perturb_meta
+    return x_reconst_perturb, perturb_meta

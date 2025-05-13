@@ -1,25 +1,17 @@
-from typing import Iterable, Optional, Tuple, List, Any
+from typing import Iterable, Optional, List, Any
+import warnings
 
-from tqdm import tqdm
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-from ..buddi4data import BuDDI4Data
 from .perturb_y import _perturb_y
 
 def perturb_single_cell_type(
     obj: Any,
-    data: BuDDI4Data,
-    cell_type_col: str = 'cell_type',
-    idx: Optional[Iterable[int]] = None,
+    data: Any,
     n_subsamples: Optional[int] = 500,
     n_resamples: int = 1,
     integrate_over: Optional[List[str]] = None,
     ignore_cell_types: Iterable[str] = [],
     seed: Optional[int] = 42,
+    query_kwargs: Optional[dict] = None,
 ):
     
     """
@@ -28,10 +20,12 @@ def perturb_single_cell_type(
 
     :param obj: BuDDI4 model object.
     :param data: BuDDI4Data object containing the data.
-    :param cell_type_col: Column name in metadata for cell types.
-    :param idx: Indices of input data to use for perturbation. If None, all samples are used.
     :param n_subsamples: Number of subsamples to draw from each source cell type. 
         Should be relatively small (500-1000) to avoid memory issues.
+        Passed on to the _perturb_y function instead of here in the data.get() due to needing to
+        sub-sample per cell type as opposed to the entire dataset.
+        If None, _perturb_y will try to use all samples but will resort to down-sampling to get
+        source and target perturbation cell types to be the same size.
     :param n_resamples: Number of resamples to draw from each source cell type.
         Should be 1 as re-sampling in single cell pseudo-bulk is largely unnecessary.
     :param integrate_over: List of latent spaces to integrate over.
@@ -41,22 +35,38 @@ def perturb_single_cell_type(
     :return: Perturbed cell type proportions.
     """
     
+    query_kwargs = query_kwargs or {}
+    if 'samp_type' in query_kwargs:
+        if query_kwargs['samp_type'] != 'sc_ref':
+            warnings.warn("Overriding query_kwargs['samp_type'] to 'sc_ref'")
+            query_kwargs['samp_type'] = 'sc_ref'
+    else:
+        query_kwargs['samp_type'] = 'sc_ref'
+
     try:
-        X=data.get(condition='kp', key='X')
-        y=data.get(condition='kp', key='Y')
-        meta=data.get(condition='kp', key='meta')
-    except KeyError:
-        raise ValueError("Data object must contain 'X', 'Y', and 'meta' keys under 'kp' condition.")
+        data_query = data.query(
+            **query_kwargs
+        )
+    except Exception as e:
+        raise ValueError(f"Error querying data: {e}")
+    
+    try:
+        (X, y, meta) = data_query.get(
+            ('X', 'Y', 'meta')
+        )
+    except Exception as e:
+        raise ValueError(f"Error retrieving data from the BuDDI4Data object: {e}")
     
     try:
         cell_type_names = data.cell_type_names
     except AttributeError:
         raise ValueError("Data object must have 'cell_type_names' attribute.")
-
-    if not cell_type_col in meta.columns:
-        raise ValueError(f"Column '{cell_type_col}' not found in meta data.")
     if not all(ct in cell_type_names for ct in ignore_cell_types):
-        raise ValueError(f"Some cell types in 'ignore_cell_types' not found in 'cell_type_names'.")
+        warnings.warn(
+            f"Some cell types in 'ignore_cell_types' not found in 'cell_type_names': {set(ignore_cell_types) - set(cell_type_names)}"
+        )
+
+    cell_type_col = data.ct_column
 
     return _perturb_y(
         obj=obj,
@@ -65,7 +75,6 @@ def perturb_single_cell_type(
         meta=meta,
         cell_type_names=cell_type_names,
         cell_type_col=cell_type_col,
-        idx=idx,
         n_subsamples=n_subsamples,
         n_resamples=n_resamples,
         integrate_over=integrate_over,

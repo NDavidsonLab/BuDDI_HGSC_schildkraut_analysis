@@ -42,7 +42,10 @@ def _perturb_y(
     :param seed: Random seed for reproducibility.
     """
     
-    rng = np.random.default_rng(seed)
+    if seed is None:
+        rng = np.random.default_rng()
+    else:
+        rng = np.random.RandomState(seed)
 
     if idx is None:
         idx = np.arange(X.shape[0])
@@ -134,13 +137,13 @@ def _perturb_y(
                 recon = obj.decoder([y_tgt] + zs_src).numpy()
 
             recons.append(recon)
-            n = recon.shape[0]
+            _n = recon.shape[0]
             perturb_meta = pd.DataFrame(
                 data={
                     'reconstruction_type': 'perturbed',
                     'perturb_type': cell_type_col,
-                    'source': [src]*n,
-                    'target': [tgt]*n
+                    'source': [src]*_n,
+                    'target': [tgt]*_n
                 }
             )
             perturb_meta = pd.concat(

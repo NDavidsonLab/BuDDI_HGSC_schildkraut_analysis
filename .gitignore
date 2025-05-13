@@ -1,6 +1,7 @@
 *.sh
 
 # keras model weights and model configurations
+/trained/*
 *.json
 *.keras
 *.h5

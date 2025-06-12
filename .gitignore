@@ -1,3 +1,21 @@
+*.sh
+
+# keras model weights and model configurations
+/trained/*
+*.json
+*.keras
+*.h5
+*.weights.h5
+
+# png files
+*.png
+
+# old notebook files
+**/oldnb/*
+
+# prototype source files
+**/prototype*/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -182,3 +200,9 @@ cython_debug/
 
 # h5ad files
 *.h5ad
+
+# cibersortx input files
+processed_data/cibersortx_input/*
+
+# training output
+**/buddi_results/*

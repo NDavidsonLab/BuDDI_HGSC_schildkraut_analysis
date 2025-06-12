@@ -74,13 +74,6 @@ def perturb_bulk_sample(
     except Exception as e:
         raise ValueError(f"Error retrieving data from the BuDDI4Data object: {e}")
     
-    # try:
-    #     X=data.get(condition='unkp', key='X')
-    #     y=data.get(condition='unkp', key='Y')
-    #     meta=data.get(condition='unkp', key='meta')
-    # except KeyError:
-    #     raise ValueError("Data object must contain 'X', 'Y', and 'meta' keys.")
-    
     if sample_col not in meta.columns:
         raise ValueError(f"Column '{sample_col}' not found in meta data.")
     
